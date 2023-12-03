@@ -12,7 +12,7 @@ file="${1}"
 file=$(basename "${file}")
 file=${file/%.cpp}
 
-g++ -fsanitize=address -std=c++17 -Wall -Wextra -Wshadow -DLOCAL -o "${file}" "${file}.cpp"
+g++ -std=c++17 -Wall -Wextra -Wshadow -DLOCAL -o "${file}" "${file}.cpp"
 if [[ $? -ne 0 ]]; then
   echo -e "${RED}Compilation Error${NC}"
   exit 1
