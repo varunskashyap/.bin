@@ -22,8 +22,6 @@ IFS=$'\n'
 TEMPLATE_DIRS=($(search_up "$TEMPLATE_DIR" "$PARENT_FILE"))
 unset IFS
 
-echo ${TEMPLATE_DIRS}
-
 # Change every element of array : http://web.archive.org/web/20101114051536/http://codesnippets.joyent.com/posts/show/1826  
 TEMPLATE_DIRS=(${TEMPLATE_DIRS[@]/%/\/"$TEMPLATE_DIR"})
 
@@ -46,7 +44,7 @@ for filepath in "$@"; do
 
     # Envsubst PROBLEM_NAME in files [Needed only to change PROBLEM_NAME inside files]
     export PROBLEM_NAME
-    REPLACE_STRING='A.HalloumiBoxes'
+    REPLACE_STRING=${PROBLEM_NAME}
     find $PWD -type f -print0 | xargs -0 -I{} bash -c\
 	'TEMP=$(mktemp) && cat "$1" > "$TEMP" && envsubst '"'$REPLACE_STRING'"' < "$TEMP" > "$1" && rm "$TEMP"'\
 	-- {}
