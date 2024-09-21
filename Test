@@ -12,7 +12,7 @@ problem=$(basename "${problem}")
 cpp_file=$(find "$PWD" -regex ".*${problem}/main\.cpp" -maxdepth 2 -print0 | xargs -0 -I{} echo {})
 cpp_file=${cpp_file/%.cpp}
 
-g++ -std=c++17 -Wall -Wextra -Wshadow -DLOCAL -o "${cpp_file}" "${cpp_file}.cpp"
+g++ -DLOCAL -std=c++20 -O2 -Wall -Wextra -pedantic -Wshadow -Wformat=2 -Wfloat-equal -Wconversion -Wlogical-op -Wshift-overflow=2 -Wduplicated-cond -Wcast-qual -Wcast-align -Wno-unused-result -Wno-sign-conversion -o "${cpp_file}" "${cpp_file}.cpp"
 if [[ $? -ne 0 ]]; then
         echo -e "${RED}Compilation Error${NC}"
         exit 1
