@@ -22,7 +22,7 @@ if [[ $# -eq 1 ]]; then
         inputs=($(find "$PWD" -maxdepth 2 -regex ".*${problem}/input[0-9]*\.in" -print0 | xargs -0 -I{} echo {}))
 else
         for it in "${@:2}"; do
-                inputs+=($(find "{$PWD}" -maxdepth 2 -regex ".*${problem}/input${it}+\.in" -print0 | xargs -0 -I{} echo {}))
+                inputs+=($(find "$PWD" -maxdepth 2 -regex ".*${problem}/input${it}\.in" -print0 | xargs -0 -I{} echo {}))
         done
 fi  
 
