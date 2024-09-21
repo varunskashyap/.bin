@@ -4,48 +4,37 @@ DIR=$(dirname $0)
 
 search_up ()
 (
-    while [[ $PWD != "/" ]]; do
-        if [[ -e "$1" ]]; then
-            pwd
-            if [[ ! -e "$1/$2" ]]; then
-                break
-            fi
-        fi
-        cd ..
-    done
+        while [[ $PWD != "/" ]]; do
+                if [[ -e "$1" ]]; then
+                        pwd
+                fi
+                cd ..
+        done
 )
-TEMPLATE_DIR='.template'
-# PARENT_FILE : To not look up from current .template dir -> need to add $PARENT file to that .template dir
-PARENT_FILE='$PARENT'
+TEMPLATE_DIR='TEMPLATE_DIR'
 
 IFS=$'\n'
-TEMPLATE_DIRS=($(search_up "$TEMPLATE_DIR" "$PARENT_FILE"))
+TEMPLATE_DIRS=($(search_up "$TEMPLATE_DIR"))
 unset IFS
 
 # Change every element of array : http://web.archive.org/web/20101114051536/http://codesnippets.joyent.com/posts/show/1826  
+# Add TEMPLATE_DIR to every element of array
 TEMPLATE_DIRS=(${TEMPLATE_DIRS[@]/%/\/"$TEMPLATE_DIR"})
 
-if hash rename.ul 2>/dev/null; then
-    RENAME=rename.ul
-else
-    RENAME=rename
-fi
-
 for filepath in "$@"; do
-    PROBLEM_NAME=$(basename "$filepath")
+        PROBLEM_NAME=$(basename "$filepath")
 
-    for CURRENT_TEMPLATE_DIR in "${TEMPLATE_DIRS[@]}"; do
-        cp -r -n "${CURRENT_TEMPLATE_DIR}/." "$PWD/"
-    done
-    rm -f "$PWD/$PARENT_FILE"
+        if [[ -e "${filepath}" ]]; then
+                echo "${filepath} already exists. Remove it and try again."
+                continue
+        fi
+        mkdir -p "${filepath}"
 
-    # Rename PROBLEM_NAME in file names
-    find $PWD -type f -print0 | xargs -0 rename 's/\$PROBLEM_NAME/'"$PROBLEM_NAME/" 
 
-    # Envsubst PROBLEM_NAME in files [Needed only to change PROBLEM_NAME inside files]
-    export PROBLEM_NAME
-    REPLACE_STRING=${PROBLEM_NAME}
-    find $PWD -type f -print0 | xargs -0 -I{} bash -c\
-	'TEMP=$(mktemp) && cat "$1" > "$TEMP" && envsubst '"'$REPLACE_STRING'"' < "$TEMP" > "$1" && rm "$TEMP"'\
-	-- {}
+        for CURRENT_TEMPLATE_DIR in "${TEMPLATE_DIRS[@]}"; do
+                cp -r -n "${CURRENT_TEMPLATE_DIR}/." "${filepath}/"
+        done
+
+        # Rename PROBLEM_NAME in file names
+        find $PWD -type f -print0 | xargs -0 rename "s/template/main/" 
 done

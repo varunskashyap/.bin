@@ -3,50 +3,48 @@
 #Colors
 RED='\033[1;31m'
 GREEN='\033[0;32m'
-BLUE='\033[1;34m'
 YELLOW='\033[1;33m'
-CYAN='\033[0;36m'
 NC='\033[0m'
 
-file="${1}"
-file=$(basename "${file}")
-file=${file/%.cpp}
+problem="${1}"
+problem=$(basename "${problem}")
 
-g++ -std=c++17 -Wall -Wextra -Wshadow -DLOCAL -o "${file}" "${file}.cpp"
+cpp_file=$(find "$PWD" -regex ".*${problem}/main\.cpp" -maxdepth 2 -print0 | xargs -0 -I{} echo {})
+cpp_file=${cpp_file/%.cpp}
+
+g++ -std=c++17 -Wall -Wextra -Wshadow -DLOCAL -o "${cpp_file}" "${cpp_file}.cpp"
 if [[ $? -ne 0 ]]; then
-  echo -e "${RED}Compilation Error${NC}"
-  exit 1
+        echo -e "${RED}Compilation Error${NC}"
+        exit 1
 fi
 
 if [[ $# -eq 1 ]]; then
-  inputs=($(find $PWD -maxdepth 1 -regex ".*${file}[0-9]+\.in" -print0 | xargs -0 -I{} echo {}))
+        inputs=($(find "$PWD" -maxdepth 2 -regex ".*${problem}/input[0-9]*\.in" -print0 | xargs -0 -I{} echo {}))
 else
-  for it in "${@:2}"; do
-    inputs+=($(find $PWD -maxdepth 1 -regex ".*${file}${it}+\.in" -print0 | xargs -0 -I{} echo {}))
-  done
+        for it in "${@:2}"; do
+                inputs+=($(find "{$PWD}" -maxdepth 2 -regex ".*${problem}/input${it}+\.in" -print0 | xargs -0 -I{} echo {}))
+        done
 fi  
 
 wrong=0
 for input in "${inputs[@]}"; do
+        answer="${input/%in/ans}"; output="${input/%in/out}"
+        "${cpp_file}" < "${input}" > "${output}"
 
-  input=$(basename "${input}")
-  answer="${input/%in/ans}"; output="${input/%in/out}"
-  ./${file} < "${input}" > "${output}"
-
-  diff -w "${answer}" "${output}" > /dev/null
-  if [[ $? -ne 0 ]]; then
-    wrong=1
-    echo -e "\n${RED}Failed for ${input}${NC}"
-    echo "INPUT"
-    cat "${input}"
-    echo "OUTPUT AND ANSWER"
-    pr -m -t "${output}" "${answer}"
-    echo ""
-  else
-    echo -e "${YELLOW}Passed for ${input}${NC}"
-  fi
+        diff -w "${answer}" "${output}" > /dev/null
+        if [[ $? -ne 0 ]]; then
+                wrong=1
+                echo -e "\n${RED}Failed for ${input}${NC}"
+                echo "INPUT"
+                cat "${input}"
+                echo "OUTPUT AND ANSWER"
+                pr -m -t "${answer}" "${output}"
+                echo ""
+        else
+                echo -e "${YELLOW}Passed for ${input}${NC}"
+        fi
 done
 
 if [[ $wrong -eq 0 ]]; then
-  echo -e "${GREEN}ALL TEST CASES PASSED${NC}"
+        echo -e "${GREEN}ALL TEST CASES PASSED ${NC}"
 fi
